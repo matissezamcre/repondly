@@ -272,6 +272,7 @@ async def admin_save(request: Request):
         "bot_name": data.get("bot_name", ""),
         "bot_business": data.get("bot_business", ""),
         "bot_language": data.get("bot_language", "français"),
+        "accent_color": data.get("accent_color", "#c9a84c"),
     })
     save_knowledge(user_id, data.get("knowledge", {}))
     return {"ok": True}
@@ -345,7 +346,7 @@ async def stripe_webhook(request: Request):
 @app.get("/bot-config")
 async def bot_config(id: str = Query(...)):
     config = load_config(id)
-    return {"bot_name": config.get("bot_name", "Assistant"), "bot_language": config.get("bot_language", "français")}
+    return {"bot_name": config.get("bot_name", "Assistant"), "bot_language": config.get("bot_language", "français"), "accent_color": config.get("accent_color", "#c9a84c")}
 
 
 class ChatRequest(BaseModel):

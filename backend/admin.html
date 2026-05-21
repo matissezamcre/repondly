@@ -73,6 +73,17 @@
   </section>
 
   <section>
+    <h2>Apparence du widget</h2>
+    <div class="field" style="max-width:300px;">
+      <label>Couleur principale <span style="font-weight:300;color:#9ca3af;">(bouton, bulles, accent)</span></label>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.3rem;">
+        <input id="accent_color" type="color" value="#c9a84c" style="width:48px;height:36px;padding:2px 4px;border:1px solid #d1d5db;border-radius:6px;cursor:pointer;background:white;flex-shrink:0;">
+        <input id="accent_hex" type="text" maxlength="7" value="#c9a84c" placeholder="#c9a84c">
+      </div>
+    </div>
+  </section>
+
+  <section>
     <h2>Informations business</h2>
     <div class="field">
       <label>Description</label>
@@ -200,6 +211,7 @@ function collect() {
     bot_name: val('bot_name'),
     bot_business: val('bot_business'),
     bot_language: val('bot_language'),
+    accent_color: document.getElementById('accent_color').value || '#c9a84c',
     knowledge: {
       business: {
         name: val('bot_business'),
@@ -252,6 +264,10 @@ async function init() {
     if (config.bot_name)     document.getElementById('bot_name').value = config.bot_name;
     if (config.bot_business) document.getElementById('bot_business').value = config.bot_business;
     if (config.bot_language) document.getElementById('bot_language').value = config.bot_language;
+    if (config.accent_color) {
+      document.getElementById('accent_color').value = config.accent_color;
+      document.getElementById('accent_hex').value = config.accent_color;
+    }
 
     const b = knowledge.business || {};
     document.getElementById('b_description').value = b.description || '';
@@ -272,6 +288,15 @@ async function init() {
     console.error('Impossible de charger la config :', e);
   }
 }
+
+document.getElementById('accent_color').addEventListener('input', function() {
+  document.getElementById('accent_hex').value = this.value;
+});
+document.getElementById('accent_hex').addEventListener('input', function() {
+  if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+    document.getElementById('accent_color').value = this.value;
+  }
+});
 
 init();
 </script>

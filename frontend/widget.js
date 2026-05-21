@@ -16,12 +16,14 @@
   let history = [];
   let isTyping = false;
   let botName = "Assistant";
+  let accentColor = "#c9a84c";
 
   // Fetch bot public config (name, language) then build widget
   fetch(`${API_ORIGIN}/bot-config?id=${BOT_ID}`)
     .then((r) => r.json())
     .then((cfg) => {
       botName = cfg.bot_name || "Assistant";
+      accentColor = cfg.accent_color || "#c9a84c";
       buildWidget();
     })
     .catch(() => buildWidget());
@@ -173,6 +175,18 @@
       }
     `;
     document.head.appendChild(style);
+    const acStyle = document.createElement("style");
+    acStyle.textContent = `
+      #rpy-toggle { background: ${accentColor} !important; }
+      #rpy-toggle:hover { background: ${accentColor} !important; filter: brightness(1.08); }
+      .rpy-dot { border-color: ${accentColor} !important; }
+      .rpy-avatar { background: ${accentColor} !important; }
+      .rpy-msg.user .rpy-bubble { background: ${accentColor} !important; }
+      #rpy-send { background: ${accentColor} !important; }
+      #rpy-send:not(:disabled):hover { background: ${accentColor} !important; filter: brightness(1.12); }
+      #rpy-input:focus { border-color: ${accentColor}40 !important; }
+    `;
+    document.head.appendChild(acStyle);
     document.body.appendChild(toggle);
     document.body.appendChild(widget);
 

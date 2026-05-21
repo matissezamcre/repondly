@@ -145,6 +145,13 @@
     <p class="snippet-help">Collez ce code sur votre site, juste avant <strong>&lt;/body&gt;</strong>. C'est tout.</p>
   </div>
 
+  <!-- Widget preview -->
+  <div class="card" id="previewCard" style="display:none;">
+    <p class="card-title">Aperçu du widget</p>
+    <div id="widgetPreview"></div>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:0.85rem;font-weight:300;">Couleur et nom modifiables depuis <a href="/admin" style="color:var(--gold);text-decoration:none;">la configuration</a>.</p>
+  </div>
+
   <!-- How to install -->
   <div class="card">
     <p class="card-title">Comment l'installer sur votre site</p>
@@ -221,6 +228,41 @@
 
     const snippet = `<script src="${HOST}/widget.js?id=${botId}"><\/script>`;
     document.getElementById('snippetCode').textContent = snippet;
+
+    fetch(`/bot-config?id=${botId}`)
+      .then(r => r.json())
+      .then(cfg => renderPreview(cfg.bot_name, cfg.accent_color || '#c9a84c'))
+      .catch(() => {});
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderPreview(name, accent) {
+    const dark = '#07070f';
+    document.getElementById('widgetPreview').innerHTML = `
+      <div style="background:#111120;border-radius:10px;overflow:hidden;max-width:300px;font-family:system-ui,sans-serif;">
+        <div style="background:#0d0d1a;padding:0.8rem 1rem;display:flex;align-items:center;gap:0.6rem;">
+          <div style="width:32px;height:32px;border-radius:50%;background:${accent};display:flex;align-items:center;justify-content:center;color:${dark};font-size:0.75rem;font-weight:700;flex-shrink:0;">◆</div>
+          <div>
+            <div style="font-size:0.83rem;font-weight:600;color:#ede9df;">${escHtml(name || 'Assistant')}</div>
+            <div style="font-size:0.65rem;color:#10b981;">● En ligne</div>
+          </div>
+        </div>
+        <div style="padding:0.75rem;display:flex;flex-direction:column;gap:0.5rem;">
+          <div style="background:#1a1a2e;padding:0.5rem 0.8rem;border-radius:10px;border-bottom-left-radius:3px;font-size:0.78rem;color:#ede9df;max-width:88%;">Bonjour ! Comment puis-je vous aider ?</div>
+          <div style="background:${accent};padding:0.5rem 0.8rem;border-radius:10px;border-bottom-right-radius:3px;font-size:0.78rem;color:${dark};font-weight:500;max-width:88%;align-self:flex-end;">Quels sont vos horaires ?</div>
+        </div>
+        <div style="padding:0.5rem 0.75rem;background:#0d0d1a;display:flex;justify-content:flex-end;align-items:center;gap:0.5rem;">
+          <span style="font-size:0.65rem;color:rgba(255,255,255,0.25);">Propulsé par Répondly</span>
+          <div style="width:32px;height:32px;border-radius:50%;background:${accent};display:flex;align-items:center;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dark}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('previewCard').style.display = '';
   }
 
   function copySnippet() {
