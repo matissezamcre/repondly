@@ -100,6 +100,89 @@ def save_knowledge(user_id: str, knowledge: dict):
         json.dump(knowledge, f, ensure_ascii=False, indent=2)
 
 
+# ── Password reset ──────────────────────────────────────────────
+
+def make_reset_token(user_id: str) -> str:
+    import time
+    return jwt.encode({"sub": user_id, "type": "reset", "exp": int(time.time()) + 3600}, SECRET_KEY, algorithm="HS256")
+
+
+def decode_reset_token(token: str) -> str | None:
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        if data.get("type") != "reset":
+            return None
+        return data["sub"]
+    except Exception:
+        return None
+
+
+def send_reset_email(to_email: str, reset_url: str) -> bool:
+    import smtplib
+    from email.mime.text import MIMEText
+    host = os.getenv("SMTP_HOST", "")
+    port = int(os.getenv("SMTP_PORT", "587"))
+    user = os.getenv("SMTP_USER", "")
+    pwd  = os.getenv("SMTP_PASS", "")
+    if not host or not user:
+        return False
+    msg = MIMEText(f"Cliquez sur ce lien pour réinitialiser votre mot de passe :\n\n{reset_url}\n\nLien valable 1 heure.", "plain", "utf-8")
+    msg["Subject"] = "Réinitialisation de votre mot de passe Répondly"
+    msg["From"] = user
+    msg["To"] = to_email
+    try:
+        with smtplib.SMTP(host, port) as s:
+            s.starttls()
+            s.login(user, pwd)
+            s.sendmail(user, to_email, msg.as_string())
+        return True
+    except Exception:
+        return False
+
+
+@app.get("/forgot-password")
+async def forgot_password_page():
+    return FileResponse(BASE_DIR / "forgot_password.html")
+
+
+@app.post("/forgot-password")
+async def forgot_password(request: Request):
+    data = await request.json()
+    email = str(data.get("email", "")).strip().lower()
+    user = get_user_by_email(email)
+    if not user:
+        return JSONResponse({"error": "Aucun compte avec cet email."}, status_code=404)
+    token = make_reset_token(user["id"])
+    base = str(request.base_url).rstrip("/")
+    reset_url = f"{base}/reset-password?token={token}"
+    sent = send_reset_email(email, reset_url)
+    if sent:
+        return {"sent": True}
+    return {"link": reset_url}
+
+
+@app.get("/reset-password")
+async def reset_password_page():
+    return FileResponse(BASE_DIR / "reset_password.html")
+
+
+@app.post("/reset-password")
+async def reset_password(request: Request):
+    data = await request.json()
+    token = str(data.get("token", ""))
+    password = str(data.get("password", ""))
+    user_id = decode_reset_token(token)
+    if not user_id:
+        return JSONResponse({"error": "Lien invalide ou expiré."}, status_code=400)
+    if len(password) < 6:
+        return JSONResponse({"error": "Mot de passe trop court (minimum 6 caractères)."}, status_code=400)
+    conn = __import__("db").get_db()
+    conn.execute("UPDATE users SET password_hash=? WHERE id=?", (pwd_ctx.hash(password), user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
 # ── Auth pages ──────────────────────────────────────────────────
 
 @app.get("/register")
