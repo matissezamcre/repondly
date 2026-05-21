@@ -13,7 +13,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-from db import create_user, get_user_by_email, get_user_by_id, get_user_by_customer_id, update_subscription, init_db
+from db import create_user, get_user_by_email, get_user_by_id, get_user_by_customer_id, update_subscription, init_db, get_db
 
 load_dotenv()
 
@@ -176,7 +176,7 @@ async def reset_password(request: Request):
         return JSONResponse({"error": "Lien invalide ou expiré."}, status_code=400)
     if len(password) < 6:
         return JSONResponse({"error": "Mot de passe trop court (minimum 6 caractères)."}, status_code=400)
-    conn = __import__("db").get_db()
+    conn = get_db()
     conn.execute("UPDATE users SET password_hash=? WHERE id=?", (pwd_ctx.hash(password), user_id))
     conn.commit()
     conn.close()
