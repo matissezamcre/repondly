@@ -1,0 +1,41 @@
+{
+  "business": {
+    "name": "Nom du business",
+    "description": "Description courte de l'activité",
+    "address": "Adresse complète",
+    "phone": "+32 xxx xx xx xx",
+    "email": "contact@business.com",
+    "website": "https://www.business.com",
+    "hours": {
+      "monday": "9h-18h",
+      "tuesday": "9h-18h",
+      "wednesday": "9h-18h",
+      "thursday": "9h-18h",
+      "friday": "9h-18h",
+      "saturday": "10h-17h",
+      "sunday": "Fermé"
+    }
+  },
+  "services": [
+    {
+      "name": "Service 1",
+      "description": "Description du service",
+      "price": "Prix ou fourchette de prix"
+    }
+  ],
+  "faq": [
+    {
+      "question": "Question fréquente 1 ?",
+      "answer": "Réponse complète."
+    },
+    {
+      "question": "Comment prendre rendez-vous ?",
+      "answer": "Réponse complète."
+    }
+  ],
+  "policies": {
+    "payment": "Modes de paiement acceptés",
+    "cancellation": "Politique d'annulation",
+    "other": "Autres infos importantes"
+  }
+}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Répondly — Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f7; color: #1a1a1a; }
+  header { background: #1a1a2e; color: white; padding: 1rem 2rem; display: flex; align-items: center; gap: 0.75rem; }
+  header span { font-size: 1.2rem; color: #818cf8; }
+  header h1 { font-size: 1rem; font-weight: 600; letter-spacing: 0.01em; }
+  main { max-width: 820px; margin: 2rem auto 6rem; padding: 0 1rem; display: flex; flex-direction: column; gap: 1.25rem; }
+  section { background: white; border-radius: 10px; border: 1px solid #e5e7eb; padding: 1.5rem; }
+  section h2 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6b7280; margin-bottom: 1.25rem; }
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 0.82rem; font-weight: 500; color: #6b7280; margin-bottom: 0.3rem; }
+  input, select, textarea {
+    width: 100%; padding: 0.5rem 0.7rem; border: 1px solid #d1d5db;
+    border-radius: 6px; font-size: 0.9rem; font-family: inherit; background: white;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px #eef2ff; }
+  textarea { resize: vertical; min-height: 72px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .hours-row { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+  .hours-row label { margin: 0; font-size: 0.88rem; font-weight: 500; color: #374151; }
+  .dynamic-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem 1rem 0.25rem; margin-bottom: 0.75rem; position: relative; }
+  .remove-btn { position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; color: #d1d5db; cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 4px; border-radius: 4px; }
+  .remove-btn:hover { color: #ef4444; background: #fef2f2; }
+  .add-btn { width: 100%; margin-top: 0.25rem; padding: 0.5rem; background: none; border: 1.5px dashed #d1d5db; border-radius: 7px; color: #9ca3af; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+  .add-btn:hover { border-color: #6366f1; color: #6366f1; background: #f5f3ff; }
+  footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e5e7eb; padding: 0.85rem 2rem; display: flex; align-items: center; gap: 1rem; z-index: 10; }
+  .save-btn { background: #6366f1; color: white; border: none; padding: 0.55rem 1.4rem; border-radius: 7px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .save-btn:hover { background: #4f46e5; }
+  .save-btn:disabled { opacity: 0.6; cursor: default; }
+  #status { font-size: 0.88rem; }
+  .ok { color: #10b981; }
+  .err { color: #ef4444; }
+</style>
+</head>
+<body>
+
+<header>
+  <span>◆</span>
+  <h1>Répondly — Configuration du bot</h1>
+</header>
+
+<main>
+
+  <section>
+    <h2>Identité du bot</h2>
+    <div class="grid-2">
+      <div class="field">
+        <label>Nom du bot</label>
+        <input id="bot_name" type="text" placeholder="Léa, Marco, Chloé...">
+      </div>
+      <div class="field">
+        <label>Langue de réponse</label>
+        <select id="bot_language">
+          <option value="français">Français</option>
+          <option value="english">English</option>
+          <option value="español">Español</option>
+          <option value="italiano">Italiano</option>
+          <option value="nederlands">Nederlands</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Nom du business (affiché dans le prompt)</label>
+      <input id="bot_business" type="text" placeholder="La Brasserie du Vieux Marché">
+    </div>
+  </section>
+
+  <section>
+    <h2>Informations business</h2>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="b_description" placeholder="Description courte de l'activité, ambiance, spécialités..."></textarea>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Adresse</label>
+        <input id="b_address" type="text" placeholder="Rue de l'Exemple 12, 1000 Bruxelles">
+      </div>
+      <div class="field">
+        <label>Téléphone</label>
+        <input id="b_phone" type="text" placeholder="+32 2 123 45 67">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input id="b_email" type="email" placeholder="contact@business.com">
+      </div>
+      <div class="field">
+        <label>Site web</label>
+        <input id="b_website" type="url" placeholder="https://www.business.com">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Horaires</h2>
+    <div id="hours-grid"></div>
+  </section>
+
+  <section>
+    <h2>Services / Offres</h2>
+    <div id="services-list"></div>
+    <button class="add-btn" onclick="addService()">+ Ajouter un service</button>
+  </section>
+
+  <section>
+    <h2>FAQ</h2>
+    <div id="faq-list"></div>
+    <button class="add-btn" onclick="addFaq()">+ Ajouter une question</button>
+  </section>
+
+  <section>
+    <h2>Politiques</h2>
+    <div class="field">
+      <label>Modes de paiement</label>
+      <input id="p_payment" type="text" placeholder="CB, espèces, Bancontact, chèques-repas...">
+    </div>
+    <div class="field">
+      <label>Réservation / annulation</label>
+      <input id="p_cancellation" type="text" placeholder="Réservation recommandée, annulation 24h à l'avance...">
+    </div>
+    <div class="field">
+      <label>Autres informations</label>
+      <textarea id="p_other" placeholder="Parking, accessibilité, animaux acceptés..."></textarea>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <button class="save-btn" onclick="save()">Sauvegarder</button>
+  <span id="status"></span>
+</footer>
+
+<script>
+const DAYS = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+
+function buildHoursGrid(hours = {}) {
+  document.getElementById('hours-grid').innerHTML = DAYS.map(day => `
+    <div class="hours-row">
+      <label>${day.charAt(0).toUpperCase() + day.slice(1)}</label>
+      <input id="h_${day}" type="text" value="${esc(hours[day] || '')}" placeholder="9h-18h ou Fermé">
+    </div>
+  `).join('');
+}
+
+function addService(svc = {}) {
+  const div = document.createElement('div');
+  div.className = 'dynamic-item';
+  div.innerHTML = `
+    <button class="remove-btn" onclick="this.parentElement.remove()" title="Supprimer">✕</button>
+    <div class="grid-2">
+      <div class="field"><label>Nom</label><input class="svc-name" value="${esc(svc.name||'')}" placeholder="Service, produit..."></div>
+      <div class="field"><label>Prix</label><input class="svc-price" value="${esc(svc.price||'')}" placeholder="29€ / Sur devis"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea class="svc-desc" placeholder="Détails du service...">${esc(svc.description||'')}</textarea></div>
+  `;
+  document.getElementById('services-list').appendChild(div);
+}
+
+function addFaq(item = {}) {
+  const div = document.createElement('div');
+  div.className = 'dynamic-item';
+  div.innerHTML = `
+    <button class="remove-btn" onclick="this.parentElement.remove()" title="Supprimer">✕</button>
+    <div class="field"><label>Question</label><input class="faq-q" value="${esc(item.question||'')}" placeholder="Est-ce que vous faites des livraisons ?"></div>
+    <div class="field"><label>Réponse</label><textarea class="faq-a" placeholder="Réponse complète...">${esc(item.answer||'')}</textarea></div>
+  `;
+  document.getElementById('faq-list').appendChild(div);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+function collect() {
+  const hours = {};
+  DAYS.forEach(d => { const v = val('h_' + d); if (v) hours[d] = v; });
+
+  const services = [...document.querySelectorAll('#services-list .dynamic-item')].map(el => ({
+    name: el.querySelector('.svc-name').value.trim(),
+    price: el.querySelector('.svc-price').value.trim(),
+    description: el.querySelector('.svc-desc').value.trim(),
+  })).filter(s => s.name);
+
+  const faq = [...document.querySelectorAll('#faq-list .dynamic-item')].map(el => ({
+    question: el.querySelector('.faq-q').value.trim(),
+    answer: el.querySelector('.faq-a').value.trim(),
+  })).filter(f => f.question);
+
+  return {
+    bot_name: val('bot_name'),
+    bot_business: val('bot_business'),
+    bot_language: val('bot_language'),
+    knowledge: {
+      business: {
+        name: val('bot_business'),
+        description: val('b_description'),
+        address: val('b_address'),
+        phone: val('b_phone'),
+        email: val('b_email'),
+        website: val('b_website'),
+        hours,
+      },
+      services,
+      faq,
+      policies: {
+        payment: val('p_payment'),
+        cancellation: val('p_cancellation'),
+        other: val('p_other'),
+      },
+    },
+  };
+}
+
+async function save() {
+  const btn = document.querySelector('.save-btn');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  status.textContent = '';
+  try {
+    const res = await fetch('/admin/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(collect()),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    status.className = 'ok';
+    status.textContent = '✓ Sauvegardé — le bot utilise déjà la nouvelle config';
+  } catch (e) {
+    status.className = 'err';
+    status.textContent = '✗ Erreur : ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function init() {
+  buildHoursGrid();
+  try {
+    const res = await fetch('/admin/data');
+    const { config, knowledge } = await res.json();
+
+    if (config.bot_name)     document.getElementById('bot_name').value = config.bot_name;
+    if (config.bot_business) document.getElementById('bot_business').value = config.bot_business;
+    if (config.bot_language) document.getElementById('bot_language').value = config.bot_language;
+
+    const b = knowledge.business || {};
+    document.getElementById('b_description').value = b.description || '';
+    document.getElementById('b_address').value     = b.address || '';
+    document.getElementById('b_phone').value       = b.phone || '';
+    document.getElementById('b_email').value       = b.email || '';
+    document.getElementById('b_website').value     = b.website || '';
+    buildHoursGrid(b.hours || {});
+
+    (knowledge.services || []).forEach(addService);
+    (knowledge.faq || []).forEach(addFaq);
+
+    const p = knowledge.policies || {};
+    document.getElementById('p_payment').value      = p.payment || '';
+    document.getElementById('p_cancellation').value = p.cancellation || '';
+    document.getElementById('p_other').value        = p.other || '';
+  } catch (e) {
+    console.error('Impossible de charger la config :', e);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

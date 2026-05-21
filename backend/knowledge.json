@@ -1,0 +1,50 @@
+{
+  "business": {
+    "name": "Le Petit Namurois",
+    "description": "Restaurant belge traditionnel au cœur de Namur. Cuisine maison, produits locaux.",
+    "address": "Rue de l'Ange 12, 5000 Namur",
+    "phone": "+32 81 22 34 56",
+    "email": "info@lepetitnamurois.be"
+  },
+  "hours": {
+    "lundi": "Fermé",
+    "mardi": "12h-14h30 et 18h30-22h",
+    "mercredi": "12h-14h30 et 18h30-22h",
+    "jeudi": "12h-14h30 et 18h30-22h",
+    "vendredi": "12h-14h30 et 18h30-23h",
+    "samedi": "12h-15h et 18h30-23h",
+    "dimanche": "12h-15h"
+  },
+  "menu": {
+    "entrees": [
+      { "nom": "Velouté de saison", "prix": "8€" },
+      { "nom": "Croquettes aux crevettes grises", "prix": "14€" },
+      { "nom": "Salade liégeoise", "prix": "12€" }
+    ],
+    "plats": [
+      { "nom": "Stoofvlees (carbonnade flamande)", "prix": "22€" },
+      { "nom": "Filet de truite locale", "prix": "24€" },
+      { "nom": "Boulets sauce lapin", "prix": "20€" },
+      { "nom": "Plat végétarien du jour", "prix": "18€" }
+    ],
+    "desserts": [
+      { "nom": "Dame blanche", "prix": "9€" },
+      { "nom": "Tarte au riz namuroise", "prix": "8€" },
+      { "nom": "Mousse au chocolat", "prix": "7€" }
+    ]
+  },
+  "reservations": {
+    "comment": "Par téléphone au +32 81 22 34 56 ou par email à info@lepetitnamurois.be",
+    "groupes": "Pour les groupes de 8 personnes et plus, réservation obligatoire 48h à l'avance"
+  },
+  "paiement": {
+    "modes": "Espèces, Bancontact, Visa, Mastercard",
+    "cheques_repas": "Acceptés (Ticket Restaurant, Sodexo, Edenred)"
+  },
+  "faq": [
+    { "question": "Avez-vous des options végétariennes ?", "reponse": "Oui, plat végétarien du jour à 18€." },
+    { "question": "Acceptez-vous les chiens ?", "reponse": "Petits chiens en laisse acceptés en terrasse uniquement." },
+    { "question": "Avez-vous un parking ?", "reponse": "Parking public à 2 min : Parking Saint-Nicolas, Rue Saint-Nicolas." },
+    { "question": "Proposez-vous des menus ?", "reponse": "Menu midi : entrée + plat ou plat + dessert à 18€. Menu complet à 24€ en semaine midi." }
+  ]
+}

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Répondly — Créez votre chatbot IA en 5 minutes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #07070f;
+    --surface: #0d0d1a;
+    --card:    #111120;
+    --gold:    #c9a84c;
+    --gold-lt: #e8c96a;
+    --text:    #ede9df;
+    --muted:   #7a7a90;
+    --border:  rgba(255,255,255,0.055);
+    --serif:   'Cormorant Garamond', Georgia, serif;
+    --sans:    'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 5vw;
+    background: rgba(7,7,15,0.82);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--serif);
+    font-size: 1.35rem; font-weight: 600; letter-spacing: 0.02em;
+    color: var(--text); text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); }
+
+  .nav-links { display: flex; align-items: center; gap: 2rem; }
+  .nav-links a {
+    font-size: 0.85rem; color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    padding: 0.55rem 1.4rem;
+    background: var(--gold); color: #07070f;
+    font-size: 0.82rem; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    text-decoration: none; border-radius: 2px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { background: var(--gold-lt); transform: translateY(-1px); }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center; gap: 4rem;
+    padding: 8rem 5vw 5rem;
+    position: relative; overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute; top: -20%; right: -10%;
+    width: 55vw; height: 55vw; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.4rem;
+    opacity: 0; animation: fadeUp 0.7s 0.1s forwards;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 4.5vw, 4rem);
+    font-weight: 700; line-height: 1.12;
+    letter-spacing: -0.01em; margin-bottom: 1.6rem;
+    opacity: 0; animation: fadeUp 0.7s 0.25s forwards;
+  }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+
+  .hero-sub {
+    font-size: 1.05rem; font-weight: 300;
+    color: var(--muted); max-width: 44ch;
+    margin-bottom: 2rem; line-height: 1.75;
+    opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+  }
+
+  .hero-trust {
+    display: flex; align-items: center; gap: 1.5rem;
+    margin-bottom: 2.8rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s 0.5s forwards;
+  }
+
+  .trust-pill {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.78rem; color: var(--muted);
+  }
+  .trust-pill::before { content: '✓'; color: var(--gold); font-weight: 700; }
+
+  .hero-actions {
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s 0.55s forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    background: var(--gold); color: #07070f;
+    font-size: 0.9rem; font-weight: 500;
+    text-decoration: none; border-radius: 2px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(201,168,76,0.25);
+  }
+  .btn-primary:hover { background: var(--gold-lt); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,0.35); }
+
+  .btn-ghost {
+    font-size: 0.88rem; color: var(--muted);
+    text-decoration: none; display: flex; align-items: center; gap: 0.4rem;
+    transition: color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* ── Chat preview ── */
+  .chat-preview {
+    position: relative;
+    opacity: 0; animation: fadeIn 0.9s 0.7s forwards;
+  }
+
+  .chat-frame {
+    background: var(--card);
+    border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    max-width: 400px; margin-left: auto;
+  }
+
+  .chat-header {
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chat-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, #7a5c1e 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 0.95rem; font-weight: 600;
+    color: #07070f; flex-shrink: 0;
+  }
+
+  .chat-header-info { flex: 1; }
+  .chat-header-name { font-size: 0.88rem; font-weight: 500; }
+  .chat-status { font-size: 0.72rem; color: #4caf85; display: flex; align-items: center; gap: 0.3rem; }
+  .chat-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #4caf85; display: inline-block; }
+
+  .chat-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.85rem; min-height: 260px; }
+
+  .msg { max-width: 85%; display: flex; flex-direction: column; gap: 0.25rem; opacity: 0; }
+  .msg.bot { align-self: flex-start; animation: msgIn 0.4s forwards; }
+  .msg.user { align-self: flex-end; animation: msgIn 0.4s forwards; }
+
+  .msg-bubble {
+    padding: 0.65rem 1rem; border-radius: 12px;
+    font-size: 0.83rem; line-height: 1.55;
+  }
+  .msg.bot .msg-bubble {
+    background: var(--surface); border: 1px solid var(--border);
+    border-bottom-left-radius: 3px;
+  }
+  .msg.user .msg-bubble {
+    background: var(--gold); color: #07070f;
+    border-bottom-right-radius: 3px; font-weight: 500;
+  }
+
+  .msg-time { font-size: 0.65rem; color: var(--muted); }
+  .msg.user .msg-time { text-align: right; }
+
+  .typing { display: flex; gap: 4px; align-items: center; padding: 0.65rem 1rem; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted); animation: bounce 1s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  /* ── Sections ── */
+  section { padding: 6rem 5vw; }
+
+  .section-label {
+    font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(1.9rem, 3.2vw, 2.8rem);
+    font-weight: 700; line-height: 1.15;
+    max-width: 22ch; margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    font-size: 1rem; color: var(--muted);
+    max-width: 50ch; font-weight: 300;
+    line-height: 1.75; margin-bottom: 3.5rem;
+  }
+
+  /* ── Logos band ── */
+  .logos-band {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1.5rem 5vw;
+    display: flex; align-items: center;
+    justify-content: center; gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .logos-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 0.5rem; }
+
+  .logo-pill {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border); border-radius: 20px;
+    font-size: 0.8rem; color: var(--muted);
+    background: var(--card);
+  }
+
+  /* ── Pain ── */
+  .pain { background: var(--surface); }
+
+  .pain-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  }
+
+  .pain-card {
+    background: var(--card); padding: 2.5rem 2rem;
+    transition: background 0.2s;
+  }
+  .pain-card:hover { background: #161628; }
+
+  .pain-icon { font-size: 1.6rem; margin-bottom: 1.25rem; display: block; }
+  .pain-card h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .pain-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  /* ── How it works ── */
+  .how { background: var(--surface); }
+
+  .steps {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2px; position: relative; margin-top: 1rem;
+  }
+
+  .step { background: var(--card); padding: 2.5rem 2rem; position: relative; }
+
+  .step:not(:last-child)::after {
+    content: '→';
+    position: absolute; right: -14px; top: 2.5rem;
+    color: var(--gold); font-size: 1.1rem; z-index: 1;
+    background: var(--card); padding: 0.2rem;
+  }
+
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    border: 1px solid var(--gold); border-radius: 50%;
+    font-family: var(--serif); font-size: 1.1rem; font-weight: 700;
+    color: var(--gold); margin-bottom: 1.5rem;
+  }
+
+  .step h3 { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .step p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  .step-badge {
+    display: inline-block; margin-top: 1rem;
+    padding: 0.3rem 0.75rem;
+    background: rgba(201,168,76,0.1); color: var(--gold);
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+    border-radius: 20px;
+  }
+
+  .step-code {
+    margin-top: 1rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.75rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem; color: var(--gold);
+    word-break: break-all;
+  }
+
+  /* ── Features grid ── */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .feat-card {
+    background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 2rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .feat-card:hover { border-color: rgba(201,168,76,0.2); transform: translateY(-3px); }
+
+  .feat-icon { font-size: 1.5rem; margin-bottom: 1rem; display: block; }
+  .feat-card h3 { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; margin-bottom: 0.6rem; }
+  .feat-card p { font-size: 0.86rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+  /* ── Pricing ── */
+  .pricing-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; max-width: 680px; margin: 0 auto;
+  }
+
+  .price-card {
+    background: var(--card);
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 2.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .price-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+
+  .price-card.featured {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px rgba(201,168,76,0.15), 0 20px 60px rgba(201,168,76,0.08);
+  }
+
+  .price-badge {
+    position: absolute; top: -12px; left: 2rem;
+    background: var(--gold); color: #07070f;
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.3rem 0.9rem; border-radius: 20px;
+  }
+
+  .price-name { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
+
+  .price-amount { display: flex; align-items: flex-start; gap: 0.25rem; margin-bottom: 0.3rem; }
+  .price-currency { font-size: 1.1rem; color: var(--gold); margin-top: 0.4rem; }
+  .price-num { font-family: var(--serif); font-size: 3.5rem; font-weight: 700; line-height: 1; }
+  .price-suffix { font-size: 0.8rem; color: var(--muted); align-self: flex-end; margin-bottom: 0.6rem; }
+
+  .price-recur { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.75rem; }
+
+  .price-divider { height: 1px; background: var(--border); margin-bottom: 1.75rem; }
+
+  .price-features { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+  .price-features li {
+    font-size: 0.87rem; color: var(--muted);
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-weight: 300;
+  }
+  .price-features li::before { content: '✓'; color: var(--gold); flex-shrink: 0; font-weight: 500; }
+  .price-features li.included { color: var(--text); }
+
+  .btn-outline {
+    display: block; padding: 0.85rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    text-align: center; font-size: 0.86rem; font-weight: 500;
+    color: var(--text); text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+
+  .price-card.featured .btn-outline { background: var(--gold); border-color: var(--gold); color: #07070f; }
+  .price-card.featured .btn-outline:hover { background: var(--gold-lt); }
+
+  .price-note { text-align: center; margin-top: 1.5rem; font-size: 0.82rem; color: var(--muted); }
+  .price-note a { color: var(--gold); text-decoration: none; }
+
+  /* ── FAQ ── */
+  .faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 1px; }
+
+  .faq-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 0; overflow: hidden;
+  }
+  .faq-item:first-child { border-radius: 10px 10px 0 0; }
+  .faq-item:last-child { border-radius: 0 0 10px 10px; }
+
+  .faq-q {
+    width: 100%; padding: 1.25rem 1.5rem;
+    background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--sans); font-size: 0.95rem; font-weight: 500;
+    color: var(--text); text-align: left;
+  }
+
+  .faq-q::after { content: '+'; color: var(--gold); font-size: 1.3rem; flex-shrink: 0; transition: transform 0.2s; }
+  .faq-item.open .faq-q::after { transform: rotate(45deg); }
+
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s;
+    font-size: 0.9rem; color: var(--muted); line-height: 1.7;
+    font-weight: 300;
+  }
+  .faq-item.open .faq-a { max-height: 200px; padding: 0 1.5rem 1.25rem; }
+
+  /* ── CTA ── */
+  .cta-final {
+    text-align: center; padding: 8rem 5vw;
+    position: relative; overflow: hidden;
+  }
+
+  .cta-final::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60vw; height: 60vw; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .cta-final .section-title { margin: 0 auto 1rem; text-align: center; }
+  .cta-final .section-sub { margin: 0 auto 2.5rem; text-align: center; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 5vw;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--gold); }
+
+  /* ── Reveal ── */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s, transform 0.65s; }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes msgIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 1000px) {
+    .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 7rem; }
+    .chat-frame { max-width: 100%; margin: 0; }
+    .pain-grid, .steps, .features-grid { grid-template-columns: 1fr; }
+    .step:not(:last-child)::after { display: none; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Répondly<span>.</span></a>
+  <div class="nav-links">
+    <a href="#comment">Comment ça marche</a>
+    <a href="#fonctionnalites">Fonctionnalités</a>
+    <a href="#pricing">Tarifs</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <a href="/register" class="nav-cta">Commencer gratuitement</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Répondly — Chatbots IA pour hôtels, restaurants & PME</p>
+    <h1>Votre site répond à vos clients — <em>sans que vous leviez le petit doigt.</em></h1>
+    <p class="hero-sub">Créez un chatbot formé sur votre business en 5 minutes. Horaires, réservations, tarifs — il répond à votre place, 24h/24.</p>
+    <div class="hero-trust">
+      <span class="trust-pill">14 jours gratuits</span>
+      <span class="trust-pill">Sans carte bancaire</span>
+      <span class="trust-pill">En ligne en 5 minutes</span>
+    </div>
+    <div class="hero-actions">
+      <a href="/register" class="btn-primary">Créer mon chatbot gratuitement <span>→</span></a>
+      <a href="#comment" class="btn-ghost">Voir comment ça marche</a>
+    </div>
+  </div>
+
+  <div class="chat-preview">
+    <div class="chat-frame">
+      <div class="chat-header">
+        <div class="chat-avatar">L</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">Léa — Brasserie du Marché</div>
+          <div class="chat-status">En ligne</div>
+        </div>
+      </div>
+      <div class="chat-body" id="chatDemo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<div class="logos-band">
+  <span class="logos-label">Fonctionne sur</span>
+  <span class="logo-pill">WordPress</span>
+  <span class="logo-pill">Wix</span>
+  <span class="logo-pill">Squarespace</span>
+  <span class="logo-pill">Shopify</span>
+  <span class="logo-pill">Webflow</span>
+  <span class="logo-pill">Tout site HTML</span>
+</div>
+
+<!-- PAIN -->
+<section class="pain" id="pain">
+  <p class="section-label reveal">Le problème</p>
+  <h2 class="section-title reveal reveal-delay-1">Chaque question sans réponse, c'est un client perdu.</h2>
+  <p class="section-sub reveal reveal-delay-2">Vos clients veulent une réponse maintenant. Pas demain matin.</p>
+  <div class="pain-grid reveal">
+    <div class="pain-card">
+      <span class="pain-icon">🔄</span>
+      <h3>Les mêmes questions en boucle</h3>
+      <p>Horaires, tarifs, disponibilités — vous répondez à la main des dizaines de fois par semaine. C'est du temps volé sur votre business.</p>
+    </div>
+    <div class="pain-card">
+      <span class="pain-icon">🌙</span>
+      <h3>Silence la nuit et le weekend</h3>
+      <p>Un client curieux à 22h sans réponse immédiate ? Il va chez votre concurrent. Pour toujours.</p>
+    </div>
+    <div class="pain-card">
+      <span class="pain-icon">💸</span>
+      <h3>Un service client coûte cher</h3>
+      <p>Embaucher quelqu'un juste pour répondre aux mêmes questions n'a aucun sens. Il y a mieux à faire.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="comment">
+  <p class="section-label reveal">Comment ça marche</p>
+  <h2 class="section-title reveal reveal-delay-1">De zéro à un chatbot en ligne en 5 minutes.</h2>
+  <p class="section-sub reveal reveal-delay-2">Vous configurez tout vous-même, sans nous. Sans technicien. Sans attendre.</p>
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Créez votre compte</h3>
+      <p>30 secondes. Email + mot de passe. Aucune carte bancaire demandée. Vous avez 14 jours pour tester librement.</p>
+      <span class="step-badge">30 secondes</span>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Configurez votre bot</h3>
+      <p>Remplissez un formulaire simple : nom du bot, horaires, services, FAQ. Votre chatbot apprend tout ce que vous lui dites.</p>
+      <span class="step-badge">5 minutes</span>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Collez une ligne sur votre site</h3>
+      <p>On génère votre snippet. Vous le collez dans votre site — Wix, WordPress, Shopify, n'importe où. C'est tout.</p>
+      <div class="step-code">&lt;script src="repondly.com/w.js?id=<em>votre-id</em>"&gt;&lt;/script&gt;</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="fonctionnalites">
+  <p class="section-label reveal" style="text-align:center">Fonctionnalités</p>
+  <h2 class="section-title reveal reveal-delay-1" style="margin: 0 auto 1rem; text-align:center">Tout ce qu'il faut. Rien de superflu.</h2>
+  <p class="section-sub reveal reveal-delay-2" style="margin: 0 auto 3.5rem; text-align:center">Un chatbot qui fait exactement ce que vos clients attendent.</p>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <span class="feat-icon">⚡</span>
+      <h3>Réponses instantanées</h3>
+      <p>Moins de 2 secondes de réponse. Vos clients ne patientent pas, ne partent pas.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-1">
+      <span class="feat-icon">🧠</span>
+      <h3>Formé sur votre contenu</h3>
+      <p>Il ne répond qu'avec vos vraies informations. Aucune invention. Aucune approximation.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-2">
+      <span class="feat-icon">📧</span>
+      <h3>Capture email automatique</h3>
+      <p>Question hors périmètre ? Le bot collecte l'email du client et vous le transmet automatiquement.</p>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">🌍</span>
+      <h3>Multilingue</h3>
+      <p>Français, anglais, espagnol, néerlandais — configurez la langue en un clic.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-1">
+      <span class="feat-icon">🎨</span>
+      <h3>Widget flottant intégré</h3>
+      <p>S'affiche discrètement en bas de votre site. S'adapte à votre charte graphique.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-2">
+      <span class="feat-icon">🔄</span>
+      <h3>Mise à jour instantanée</h3>
+      <p>Vos horaires changent ? Modifiez le formulaire, le bot est à jour en temps réel. Sans redéploiement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pain" id="pricing">
+  <p class="section-label reveal" style="text-align:center">Tarifs</p>
+  <h2 class="section-title reveal reveal-delay-1" style="text-align:center; margin:0 auto 0.75rem">Simple et prévisible.</h2>
+  <p class="section-sub reveal reveal-delay-2" style="text-align:center; margin:0 auto 3.5rem">Aucun frais d'installation. Résiliez quand vous voulez.</p>
+  <div class="pricing-grid">
+    <div class="price-card reveal">
+      <p class="price-name">Starter</p>
+      <div class="price-amount">
+        <span class="price-currency">€</span>
+        <span class="price-num">29</span>
+        <span class="price-suffix">/mois</span>
+      </div>
+      <p class="price-recur">14 jours gratuits · Sans carte</p>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li class="included">500 conversations / mois</li>
+        <li class="included">Widget flottant</li>
+        <li class="included">Capture email</li>
+        <li class="included">Mise à jour du contenu</li>
+        <li>Analytics</li>
+        <li>Support prioritaire</li>
+      </ul>
+      <a href="/register" class="btn-outline">Commencer gratuitement</a>
+    </div>
+    <div class="price-card featured reveal reveal-delay-1">
+      <span class="price-badge">Le plus populaire</span>
+      <p class="price-name">Pro</p>
+      <div class="price-amount">
+        <span class="price-currency">€</span>
+        <span class="price-num">69</span>
+        <span class="price-suffix">/mois</span>
+      </div>
+      <p class="price-recur">14 jours gratuits · Sans carte</p>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li class="included">Conversations illimitées</li>
+        <li class="included">Widget personnalisable</li>
+        <li class="included">Capture email</li>
+        <li class="included">Analytics avancés</li>
+        <li class="included">Mises à jour illimitées</li>
+        <li class="included">Support prioritaire</li>
+      </ul>
+      <a href="/register" class="btn-outline">Commencer gratuitement</a>
+    </div>
+  </div>
+  <p class="price-note reveal">Des questions sur les tarifs ? <a href="mailto:matissezamcre@gmail.com">Écrivez-nous</a></p>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <p class="section-label reveal" style="text-align:center">FAQ</p>
+  <h2 class="section-title reveal reveal-delay-1" style="margin:0 auto 1rem; text-align:center">Vos questions, nos réponses.</h2>
+  <p class="section-sub reveal reveal-delay-2" style="margin:0 auto 3rem; text-align:center">Tout ce que vous voulez savoir avant de vous lancer.</p>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <button class="faq-q">Est-ce que j'ai besoin de compétences techniques ?</button>
+      <div class="faq-a">Non. Vous remplissez un formulaire, vous copiez une ligne de code sur votre site. Si vous savez utiliser Wix ou WordPress, vous savez utiliser Répondly.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">Comment installer le chatbot sur mon site ?</button>
+      <div class="faq-a">Après la configuration, on vous donne un snippet HTML (une seule ligne). Vous la collez dans votre site — n'importe où dans le body ou le head. Sur Wix ou Squarespace, il y a un bloc "HTML personnalisé" prévu pour ça.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">Le bot peut-il se tromper ou inventer des informations ?</button>
+      <div class="faq-a">Non. Il est strictement limité aux informations que vous avez entrées dans le formulaire. Si une question dépasse ce périmètre, il collecte l'email du client et vous le transmet.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">Que se passe-t-il après les 14 jours gratuits ?</button>
+      <div class="faq-a">Si vous choisissez de continuer, vous entrez vos informations de paiement et votre abonnement démarre. Sinon, votre compte est désactivé automatiquement. Aucun prélèvement surprise.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">Puis-je mettre à jour les informations du bot ?</button>
+      <div class="faq-a">Oui, à tout moment depuis votre dashboard. Les modifications prennent effet immédiatement, sans redéploiement ni intervention technique.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <p class="section-label reveal">Passez à l'action</p>
+  <h2 class="section-title reveal reveal-delay-1">Vos clients méritent une réponse immédiate.</h2>
+  <p class="section-sub reveal reveal-delay-2">14 jours gratuits. Sans carte bancaire. En ligne en 5 minutes.</p>
+  <a href="/register" class="btn-primary reveal reveal-delay-2" style="display:inline-flex">
+    Créer mon chatbot gratuitement →
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Répondly</span>
+  <div style="display:flex;gap:1.5rem">
+    <a href="mailto:matissezamcre@gmail.com">Contact</a>
+    <a href="#">Mentions légales</a>
+    <a href="#">CGU</a>
+  </div>
+</footer>
+
+<script>
+  // Chat demo
+  const msgs = [
+    { type: 'bot',  text: 'Bonjour ! Je suis Léa, l\'assistante de la Brasserie du Marché. Comment puis-je vous aider ? 😊', delay: 800 },
+    { type: 'user', text: 'Vous êtes ouverts le dimanche ?', delay: 2000 },
+    { type: 'bot',  text: 'Oui, nous sommes ouverts le dimanche de 12h à 15h. Bonne nouvelle, les réservations sont encore disponibles pour ce week-end !', delay: 3400 },
+    { type: 'user', text: 'Vous faites des menus végétariens ?', delay: 5200 },
+    { type: 'bot',  text: 'Absolument ! Nous proposons un plat végétarien du jour ainsi que deux entrées végétariennes. Voulez-vous réserver une table ? 🌿', delay: 6700 },
+  ];
+
+  const container = document.getElementById('chatDemo');
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'msg bot'; div.style.opacity = '1';
+    div.innerHTML = '<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  msgs.forEach((m, i) => {
+    if (m.type === 'bot' && i > 0) {
+      setTimeout(() => {
+        const t = showTyping();
+        setTimeout(() => { t.remove(); addMsg(m); }, 900);
+      }, m.delay - 950);
+    } else {
+      setTimeout(() => addMsg(m), m.delay);
+    }
+  });
+
+  function addMsg(m) {
+    const div = document.createElement('div');
+    div.className = `msg ${m.type}`;
+    const now = new Date();
+    div.innerHTML = `<div class="msg-bubble">${m.text}</div><div class="msg-time">${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.parentElement;
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
