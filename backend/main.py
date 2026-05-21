@@ -24,7 +24,7 @@ PORT         = int(os.getenv("PORT", 8000))
 SECRET_KEY   = os.getenv("SECRET_KEY", "change-me-in-production")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
