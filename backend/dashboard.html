@@ -105,6 +105,26 @@
   .platform-list { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
   .platform { font-size: 0.72rem; padding: 0.2rem 0.6rem; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); }
 
+  /* Email banner */
+  .email-banner {
+    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 10px; padding: 0.9rem 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem; font-size: 0.86rem;
+  }
+  .email-banner-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .email-banner a { color: var(--gold); text-decoration: none; font-weight: 500; }
+  .email-banner a:hover { text-decoration: underline; }
+
+  /* Stats */
+  .stats-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .stat-box {
+    flex: 1; min-width: 120px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.25rem; text-align: center;
+  }
+  .stat-num { font-family: var(--serif); font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; font-weight: 300; }
+
   /* Onboarding checklist */
   .checklist { display: flex; flex-direction: column; gap: 0; }
   .check-item {
@@ -142,6 +162,23 @@
   <div class="greeting">
     <h1>Votre dashboard</h1>
     <p>Configurez votre bot et intégrez-le sur votre site.</p>
+  </div>
+
+  <!-- Email verification banner -->
+  <div id="emailBanner" style="display:none;" class="email-banner">
+    <span class="email-banner-icon">✉</span>
+    <span>Vérifiez votre email — un lien vous a été envoyé à <strong id="bannerEmail"></strong>. <a href="#" onclick="resendVerify(event)">Renvoyer le lien</a></span>
+  </div>
+
+  <!-- Stats -->
+  <div class="card" id="statsCard" style="display:none;">
+    <p class="card-title">Statistiques</p>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num" id="statConversations">0</div>
+        <div class="stat-label">Conversations totales</div>
+      </div>
+    </div>
   </div>
 
   <!-- Onboarding checklist (hidden once bot configured) -->
@@ -250,6 +287,27 @@
     botId = data.id;
     document.getElementById('userEmail').textContent = data.email;
 
+    // Email verification banner
+    if (!data.email_verified) {
+      document.getElementById('bannerEmail').textContent = data.email;
+      document.getElementById('emailBanner').style.display = 'flex';
+    }
+
+    // Stats
+    if (data.total_conversations > 0) {
+      document.getElementById('statConversations').textContent = data.total_conversations;
+      document.getElementById('statsCard').style.display = '';
+    }
+
+    // Verified toast
+    if (new URLSearchParams(location.search).get('verified') === '1') {
+      const b = document.getElementById('emailBanner');
+      b.style.background = 'rgba(16,185,129,0.08)';
+      b.style.borderColor = 'rgba(16,185,129,0.25)';
+      b.innerHTML = '<span class="email-banner-icon">✓</span><span>Email vérifié — merci !</span>';
+      b.style.display = 'flex';
+    }
+
     const dot = document.getElementById('statusDot');
     const label = document.getElementById('statusLabel');
     const sub = document.getElementById('statusSub');
@@ -329,6 +387,12 @@
       </div>
     `;
     document.getElementById('previewCard').style.display = '';
+  }
+
+  async function resendVerify(e) {
+    e.preventDefault();
+    await fetch('/resend-verify', { method: 'POST' });
+    document.getElementById('emailBanner').querySelector('span:last-child').textContent = 'Lien renvoyé — vérifiez votre boîte mail.';
   }
 
   function copySnippet() {

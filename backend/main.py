@@ -1,5 +1,7 @@
 import json
 import os
+import time
+from collections import defaultdict
 from pathlib import Path
 
 import stripe
@@ -17,6 +19,7 @@ from db import (
     create_user, get_user_by_email, get_user_by_id, get_user_by_customer_id,
     update_subscription, init_db, update_password,
     load_user_config, save_user_config, load_user_knowledge, save_user_knowledge,
+    set_email_verified, increment_conversations,
 )
 
 load_dotenv()
@@ -47,6 +50,20 @@ RÈGLES ABSOLUES :
 CATALOGUE :
 {knowledge}
 """
+
+
+# ── Rate limiter (in-memory, 100 req/hour per bot) ──────────────
+_rate_windows: dict[str, list[float]] = defaultdict(list)
+RATE_LIMIT_PER_HOUR = int(os.getenv("CHAT_RATE_LIMIT", "100"))
+
+def _check_rate_limit(bot_id: str) -> bool:
+    now = time.time()
+    window = [t for t in _rate_windows[bot_id] if now - t < 3600]
+    _rate_windows[bot_id] = window
+    if len(window) >= RATE_LIMIT_PER_HOUR:
+        return False
+    _rate_windows[bot_id].append(now)
+    return True
 
 
 # ── Auth helpers ────────────────────────────────────────────────
@@ -86,6 +103,20 @@ def save_knowledge(user_id: str, knowledge: dict):
 
 # ── Password reset ──────────────────────────────────────────────
 
+def make_verify_token(user_id: str) -> str:
+    return jwt.encode({"sub": user_id, "type": "verify"}, SECRET_KEY, algorithm="HS256")
+
+
+def decode_verify_token(token: str) -> str | None:
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        if data.get("type") != "verify":
+            return None
+        return data["sub"]
+    except Exception:
+        return None
+
+
 def make_reset_token(user_id: str) -> str:
     import time
     return jwt.encode({"sub": user_id, "type": "reset", "exp": int(time.time()) + 3600}, SECRET_KEY, algorithm="HS256")
@@ -122,6 +153,28 @@ def send_reset_email(to_email: str, reset_url: str) -> bool:
         return True
     except Exception:
         return False
+
+
+@app.post("/resend-verify")
+async def resend_verify(request: Request):
+    user_id = get_current_user_id(request)
+    if not user_id:
+        return JSONResponse({"error": "unauthenticated"}, status_code=401)
+    user = get_user_by_id(user_id)
+    token = make_verify_token(user_id)
+    base = os.getenv("APP_URL", str(request.base_url).rstrip("/"))
+    verify_url = f"{base}/verify-email?token={token}"
+    send_reset_email(user["email"], verify_url)
+    return {"ok": True}
+
+
+@app.get("/verify-email")
+async def verify_email(token: str = Query(...)):
+    user_id = decode_verify_token(token)
+    if not user_id:
+        return HTMLResponse("Lien invalide ou expiré. <a href='/dashboard'>Dashboard</a>", status_code=400)
+    set_email_verified(user_id)
+    return RedirectResponse("/dashboard?verified=1", status_code=302)
 
 
 @app.get("/forgot-password")
@@ -181,6 +234,14 @@ async def register(request: Request):
     if get_user_by_email(email):
         return HTMLResponse("Email déjà utilisé. <a href='/login'>Se connecter</a>", status_code=400)
     bot_id = create_user(email, pwd_ctx.hash(password))
+    verify_token = make_verify_token(bot_id)
+    base = ""
+    try:
+        base = os.getenv("APP_URL", "").rstrip("/")
+    except Exception:
+        pass
+    verify_url = f"{base}/verify-email?token={verify_token}"
+    send_reset_email(email, verify_url)
     token = make_token(bot_id)
     response = RedirectResponse("/dashboard", status_code=302)
     response.set_cookie("session", token, httponly=True, max_age=60 * 60 * 24 * 30)
@@ -347,6 +408,8 @@ def _user_can_use(user_id: str) -> bool:
 
 @app.post("/chat")
 async def chat(req: ChatRequest, id: str = Query(...)):
+    if not _check_rate_limit(id):
+        return JSONResponse({"reply": "Trop de messages. Réessayez dans quelques minutes."}, status_code=429)
     if not _user_can_use(id):
         return JSONResponse({"reply": "Ce bot n'est plus actif. Abonnement requis."}, status_code=402)
     config = load_config(id)
@@ -370,6 +433,7 @@ async def chat(req: ChatRequest, id: str = Query(...)):
         temperature=float(os.getenv("BOT_TEMPERATURE", "0.4")),
         max_tokens=int(os.getenv("BOT_MAX_TOKENS", "300")),
     )
+    increment_conversations(id)
     return {"reply": response.choices[0].message.content.strip()}
 
 
@@ -400,11 +464,13 @@ async def me(request: Request):
     return {
         "id": user_id,
         "email": user["email"],
+        "email_verified": user.get("email_verified", False),
         "bot_configured": knowledge_exists,
         "bot_name": config.get("bot_name", ""),
         "subscription_status": sub_status,
         "trial_active": trial_active,
         "can_use": can_use,
+        "total_conversations": user.get("total_conversations", 0),
     }
 
 

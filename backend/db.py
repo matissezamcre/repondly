@@ -39,6 +39,8 @@ def init_db():
             ("subscription_status", "TEXT DEFAULT 'trial'"),
             ("config", "JSONB DEFAULT '{}'"),
             ("knowledge", "JSONB DEFAULT '{}'"),
+            ("email_verified", "BOOLEAN DEFAULT false"),
+            ("total_conversations", "INTEGER DEFAULT 0"),
         ]:
             try:
                 cur.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")
@@ -106,6 +108,22 @@ def update_password(user_id: str, password_hash: str):
     conn = get_db()
     with conn.cursor() as cur:
         cur.execute("UPDATE users SET password_hash=%s WHERE id=%s", (password_hash, user_id))
+    conn.commit()
+    conn.close()
+
+
+def set_email_verified(user_id: str):
+    conn = get_db()
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET email_verified=true WHERE id=%s", (user_id,))
+    conn.commit()
+    conn.close()
+
+
+def increment_conversations(user_id: str):
+    conn = get_db()
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET total_conversations=total_conversations+1 WHERE id=%s", (user_id,))
     conn.commit()
     conn.close()
 
