@@ -137,7 +137,7 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
     import json as _json
     api_key   = os.getenv("BREVO_API_KEY", "")
     from_addr = os.getenv("SMTP_FROM", "matissezamcre@gmail.com")
-    print(f"[EMAIL] to={to_email} from={from_addr!r} api_key_set={bool(api_key)}")
+    print(f"[EMAIL] to={to_email} from={from_addr!r} api_key_prefix={api_key[:12]!r}")
     if not api_key:
         print("[EMAIL] BREVO_API_KEY not set — skipping")
         return False
