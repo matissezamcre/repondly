@@ -135,12 +135,14 @@ def decode_reset_token(token: str) -> str | None:
 def send_email(to_email: str, subject: str, body: str) -> bool:
     import smtplib
     from email.mime.text import MIMEText
-    host     = os.getenv("SMTP_HOST", "")
-    port     = int(os.getenv("SMTP_PORT", "587"))
-    user     = os.getenv("SMTP_USER", "")
-    pwd      = os.getenv("SMTP_PASS", "")
+    host      = os.getenv("SMTP_HOST", "")
+    port      = int(os.getenv("SMTP_PORT", "587"))
+    user      = os.getenv("SMTP_USER", "")
+    pwd       = os.getenv("SMTP_PASS", "")
     from_addr = os.getenv("SMTP_FROM", user)
+    print(f"[EMAIL] to={to_email} host={host!r} user={user!r} from={from_addr!r}")
     if not host or not user:
+        print("[EMAIL] SMTP not configured — skipping")
         return False
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
@@ -151,8 +153,10 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
             s.starttls()
             s.login(user, pwd)
             s.sendmail(from_addr, to_email, msg.as_string())
+        print("[EMAIL] Sent OK")
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[EMAIL] Error: {e}")
         return False
 
 
