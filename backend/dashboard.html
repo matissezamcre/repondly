@@ -104,6 +104,28 @@
   .install-text p { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.6; }
   .platform-list { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
   .platform { font-size: 0.72rem; padding: 0.2rem 0.6rem; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); }
+
+  /* Onboarding checklist */
+  .checklist { display: flex; flex-direction: column; gap: 0; }
+  .check-item {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .check-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .check-icon {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700;
+    border: 1.5px solid var(--border); color: var(--muted);
+    margin-top: 0.1rem;
+  }
+  .check-item.done .check-icon { background: var(--green); border-color: var(--green); color: #07070f; }
+  .check-item.active .check-icon { background: var(--gold); border-color: var(--gold); color: #07070f; }
+  .check-body h4 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.2rem; }
+  .check-body p { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.6; }
+  .check-item.done .check-body h4 { color: var(--muted); text-decoration: line-through; }
+  .check-item.todo { opacity: 0.45; }
 </style>
 </head>
 <body>
@@ -120,6 +142,35 @@
   <div class="greeting">
     <h1>Votre dashboard</h1>
     <p>Configurez votre bot et intégrez-le sur votre site.</p>
+  </div>
+
+  <!-- Onboarding checklist (hidden once bot configured) -->
+  <div class="card" id="onboardingCard" style="display:none; border-color: rgba(201,168,76,0.18);">
+    <p class="card-title">Démarrage rapide</p>
+    <div class="checklist">
+      <div class="check-item done">
+        <div class="check-icon">✓</div>
+        <div class="check-body">
+          <h4>Compte créé</h4>
+          <p>Votre essai gratuit de 14 jours est actif. Aucune carte requise.</p>
+        </div>
+      </div>
+      <div class="check-item active" id="step-config">
+        <div class="check-icon">2</div>
+        <div class="check-body">
+          <h4>Configurer votre bot</h4>
+          <p>Donnez-lui un nom, renseignez vos infos business, vos horaires, vos services.</p>
+          <a href="/admin" class="btn-primary" style="margin-top:0.85rem;display:inline-flex;font-size:0.84rem;">Configurer maintenant →</a>
+        </div>
+      </div>
+      <div class="check-item todo" id="step-install">
+        <div class="check-icon">3</div>
+        <div class="check-body">
+          <h4>Installer sur votre site</h4>
+          <p>Copiez votre snippet ci-dessous et collez-le avant &lt;/body&gt; sur votre site.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Status + Actions -->
@@ -203,6 +254,21 @@
     const label = document.getElementById('statusLabel');
     const sub = document.getElementById('statusSub');
     const actions = document.getElementById('actionsArea');
+
+    // Onboarding checklist
+    if (!data.bot_configured) {
+      document.getElementById('onboardingCard').style.display = '';
+    } else {
+      // Bot configured — mark step 2 done, step 3 active
+      const s2 = document.getElementById('step-config');
+      const s3 = document.getElementById('step-install');
+      s2.className = 'check-item done';
+      s2.querySelector('.check-icon').textContent = '✓';
+      s2.querySelector('.check-body').innerHTML = '<h4>Bot configuré</h4><p>Votre bot est prêt. Modifiez la configuration à tout moment.</p>';
+      s3.className = 'check-item active';
+      s3.querySelector('.check-icon').textContent = '3';
+      document.getElementById('onboardingCard').style.display = '';
+    }
 
     if (!data.can_use) {
       dot.className = 'status-dot pending';
