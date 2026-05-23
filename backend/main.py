@@ -13,18 +13,19 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-from db import create_user, get_user_by_email, get_user_by_id, get_user_by_customer_id, update_subscription, init_db, get_db
+from db import (
+    create_user, get_user_by_email, get_user_by_id, get_user_by_customer_id,
+    update_subscription, init_db, update_password,
+    load_user_config, save_user_config, load_user_knowledge, save_user_knowledge,
+)
 
 load_dotenv()
 
 BASE_DIR     = Path(__file__).parent
-DATA_DIR     = Path(os.getenv("DATA_ROOT", str(BASE_DIR))) / "users"
 FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", str(BASE_DIR.parent / "frontend")))
 PORT         = int(os.getenv("PORT", 8000))
 SECRET_KEY   = os.getenv("SECRET_KEY", "change-me-in-production")
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
-
-DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -68,36 +69,19 @@ def get_current_user_id(request: Request) -> str | None:
 
 # ── Per-user data ────────────────────────────────────────────────
 
-def user_dir(user_id: str) -> Path:
-    d = DATA_DIR / user_id
-    d.mkdir(exist_ok=True)
-    return d
-
+_CONFIG_DEFAULTS = {"bot_name": "Assistant", "bot_business": "votre entreprise", "bot_language": "français", "accent_color": "#c9a84c"}
 
 def load_config(user_id: str) -> dict:
-    path = user_dir(user_id) / "config.json"
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    return {"bot_name": "Assistant", "bot_business": "votre entreprise", "bot_language": "français"}
-
+    return {**_CONFIG_DEFAULTS, **load_user_config(user_id)}
 
 def load_knowledge(user_id: str) -> str:
-    path = user_dir(user_id) / "knowledge.json"
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return json.dumps(json.load(f), ensure_ascii=False, indent=2)
-    return "{}"
-
+    return json.dumps(load_user_knowledge(user_id), ensure_ascii=False, indent=2)
 
 def save_config(user_id: str, config: dict):
-    with open(user_dir(user_id) / "config.json", "w", encoding="utf-8") as f:
-        json.dump(config, f, ensure_ascii=False, indent=2)
-
+    save_user_config(user_id, config)
 
 def save_knowledge(user_id: str, knowledge: dict):
-    with open(user_dir(user_id) / "knowledge.json", "w", encoding="utf-8") as f:
-        json.dump(knowledge, f, ensure_ascii=False, indent=2)
+    save_user_knowledge(user_id, knowledge)
 
 
 # ── Password reset ──────────────────────────────────────────────
@@ -176,10 +160,7 @@ async def reset_password(request: Request):
         return JSONResponse({"error": "Lien invalide ou expiré."}, status_code=400)
     if len(password) < 6:
         return JSONResponse({"error": "Mot de passe trop court (minimum 6 caractères)."}, status_code=400)
-    conn = get_db()
-    conn.execute("UPDATE users SET password_hash=? WHERE id=?", (pwd_ctx.hash(password), user_id))
-    conn.commit()
-    conn.close()
+    update_password(user_id, pwd_ctx.hash(password))
     return {"ok": True}
 
 
@@ -254,11 +235,7 @@ async def admin_data(request: Request):
     if not user_id:
         return RedirectResponse("/login", status_code=302)
     config = load_config(user_id)
-    knowledge: dict = {}
-    path = user_dir(user_id) / "knowledge.json"
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            knowledge = json.load(f)
+    knowledge = load_user_knowledge(user_id)
     return {"config": config, "knowledge": knowledge}
 
 
@@ -405,7 +382,7 @@ async def me(request: Request):
         return JSONResponse({"error": "unauthenticated"}, status_code=401)
     user = get_user_by_id(user_id)
     config = load_config(user_id)
-    knowledge_exists = (user_dir(user_id) / "knowledge.json").exists()
+    knowledge_exists = bool(load_user_knowledge(user_id))
 
     from datetime import datetime, timezone
     created = user["created_at"] or ""
