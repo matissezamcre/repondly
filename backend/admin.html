@@ -152,6 +152,7 @@
 <footer>
   <button class="save-btn" onclick="save()">Sauvegarder</button>
   <a href="/dashboard" style="padding:0.55rem 1.2rem;border:1px solid #d1d5db;border-radius:7px;font-size:0.88rem;color:#6b7280;text-decoration:none;transition:all 0.15s;" onmouseover="this.style.borderColor='#6366f1';this.style.color='#6366f1'" onmouseout="this.style.borderColor='#d1d5db';this.style.color='#6b7280'">← Dashboard</a>
+  <button id="testBtn" onclick="testBot()" style="padding:0.55rem 1.2rem;border:1px solid #10b981;border-radius:7px;font-size:0.88rem;color:#10b981;background:none;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='none'">▶ Tester le bot</button>
   <span id="status"></span>
 </footer>
 
@@ -343,7 +344,42 @@ document.getElementById('bot_name').addEventListener('input', function() {
   renderWidgetPreview(document.getElementById('accent_color').value);
 });
 
+let _botId = null;
+
+async function loadBotId() {
+  try {
+    const res = await fetch('/me');
+    const data = await res.json();
+    _botId = data.id;
+  } catch(e) {}
+}
+
+function testBot() {
+  if (!_botId) { alert('Chargement en cours, réessaie dans un instant.'); return; }
+
+  const existing = document.getElementById('rpy-toggle');
+  if (existing) {
+    // Widget already loaded — toggle open
+    if (!document.getElementById('rpy-widget').style.display || document.getElementById('rpy-widget').style.display === 'none') {
+      existing.click();
+    }
+    return;
+  }
+
+  // Inject widget script
+  const s = document.createElement('script');
+  s.src = `/widget.js?id=${_botId}`;
+  s.onload = () => {
+    setTimeout(() => {
+      const toggle = document.getElementById('rpy-toggle');
+      if (toggle) toggle.click();
+    }, 300);
+  };
+  document.head.appendChild(s);
+}
+
 renderWidgetPreview('#c9a84c');
+loadBotId();
 init();
 </script>
 </body>
