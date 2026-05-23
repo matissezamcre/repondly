@@ -132,24 +132,25 @@ def decode_reset_token(token: str) -> str | None:
         return None
 
 
-def send_reset_email(to_email: str, reset_url: str) -> bool:
+def send_email(to_email: str, subject: str, body: str) -> bool:
     import smtplib
     from email.mime.text import MIMEText
-    host = os.getenv("SMTP_HOST", "")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    user = os.getenv("SMTP_USER", "")
-    pwd  = os.getenv("SMTP_PASS", "")
+    host     = os.getenv("SMTP_HOST", "")
+    port     = int(os.getenv("SMTP_PORT", "587"))
+    user     = os.getenv("SMTP_USER", "")
+    pwd      = os.getenv("SMTP_PASS", "")
+    from_addr = os.getenv("SMTP_FROM", user)
     if not host or not user:
         return False
-    msg = MIMEText(f"Cliquez sur ce lien pour réinitialiser votre mot de passe :\n\n{reset_url}\n\nLien valable 1 heure.", "plain", "utf-8")
-    msg["Subject"] = "Réinitialisation de votre mot de passe Répondly"
-    msg["From"] = user
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = subject
+    msg["From"] = from_addr
     msg["To"] = to_email
     try:
         with smtplib.SMTP(host, port) as s:
             s.starttls()
             s.login(user, pwd)
-            s.sendmail(user, to_email, msg.as_string())
+            s.sendmail(from_addr, to_email, msg.as_string())
         return True
     except Exception:
         return False
@@ -164,7 +165,7 @@ async def resend_verify(request: Request):
     token = make_verify_token(user_id)
     base = os.getenv("APP_URL", str(request.base_url).rstrip("/"))
     verify_url = f"{base}/verify-email?token={token}"
-    send_reset_email(user["email"], verify_url)
+    send_email(user["email"], "Vérifiez votre email Répondly", f"Cliquez sur ce lien pour vérifier votre email :\n\n{verify_url}")
     return {"ok": True}
 
 
@@ -192,7 +193,7 @@ async def forgot_password(request: Request):
     token = make_reset_token(user["id"])
     base = str(request.base_url).rstrip("/")
     reset_url = f"{base}/reset-password?token={token}"
-    sent = send_reset_email(email, reset_url)
+    sent = send_email(email, "Réinitialisation de votre mot de passe Répondly", f"Cliquez sur ce lien pour réinitialiser votre mot de passe :\n\n{reset_url}\n\nLien valable 1 heure.")
     if sent:
         return {"sent": True}
     return {"link": reset_url}
@@ -241,7 +242,7 @@ async def register(request: Request):
     except Exception:
         pass
     verify_url = f"{base}/verify-email?token={verify_token}"
-    send_reset_email(email, verify_url)
+    send_email(email, "Vérifiez votre email Répondly", f"Bienvenue sur Répondly !\n\nCliquez sur ce lien pour vérifier votre email :\n\n{verify_url}")
     token = make_token(bot_id)
     response = RedirectResponse("/dashboard", status_code=302)
     response.set_cookie("session", token, httponly=True, max_age=60 * 60 * 24 * 30)
