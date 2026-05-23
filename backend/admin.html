@@ -46,7 +46,10 @@
   <h1>Répondly — Configuration du bot</h1>
 </header>
 
-<main>
+<div id="loadingBar" style="position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#818cf8);z-index:200;animation:slide 1.5s ease-in-out infinite;"></div>
+<style>@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>
+
+<main id="mainContent" style="opacity:0.3;pointer-events:none;">
 
   <section>
     <h2>Identité du bot</h2>
@@ -295,6 +298,9 @@ async function init() {
   } catch (e) {
     console.error('Impossible de charger la config :', e);
   }
+  document.getElementById('loadingBar').style.display = 'none';
+  document.getElementById('mainContent').style.opacity = '1';
+  document.getElementById('mainContent').style.pointerEvents = '';
 }
 
 function renderWidgetPreview(accent) {
