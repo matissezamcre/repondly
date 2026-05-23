@@ -133,27 +133,29 @@ def decode_reset_token(token: str) -> str | None:
 
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
-    import smtplib
-    from email.mime.text import MIMEText
-    host      = os.getenv("SMTP_HOST", "")
-    port      = int(os.getenv("SMTP_PORT", "587"))
-    user      = os.getenv("SMTP_USER", "")
-    pwd       = os.getenv("SMTP_PASS", "")
-    from_addr = os.getenv("SMTP_FROM", user)
-    print(f"[EMAIL] to={to_email} host={host!r} user={user!r} from={from_addr!r}")
-    if not host or not user:
-        print("[EMAIL] SMTP not configured — skipping")
+    import urllib.request
+    import json as _json
+    api_key   = os.getenv("BREVO_API_KEY", "")
+    from_addr = os.getenv("SMTP_FROM", "matissezamcre@gmail.com")
+    print(f"[EMAIL] to={to_email} from={from_addr!r} api_key_set={bool(api_key)}")
+    if not api_key:
+        print("[EMAIL] BREVO_API_KEY not set — skipping")
         return False
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = subject
-    msg["From"] = from_addr
-    msg["To"] = to_email
+    payload = _json.dumps({
+        "sender": {"email": from_addr},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": body,
+    }).encode()
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=payload,
+        headers={"api-key": api_key, "Content-Type": "application/json"},
+        method="POST",
+    )
     try:
-        with smtplib.SMTP(host, port) as s:
-            s.starttls()
-            s.login(user, pwd)
-            s.sendmail(from_addr, to_email, msg.as_string())
-        print("[EMAIL] Sent OK")
+        with urllib.request.urlopen(req, timeout=10) as r:
+            print(f"[EMAIL] Sent OK status={r.status}")
         return True
     except Exception as e:
         print(f"[EMAIL] Error: {e}")
