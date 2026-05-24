@@ -9,7 +9,7 @@
   const API_ORIGIN = scriptUrl.origin;
 
   if (!BOT_ID) {
-    console.warn("[Répondly] Missing ?id= in script src.");
+    console.warn("[Dialogly] Missing ?id= in script src.");
     return;
   }
 
@@ -66,7 +66,7 @@
           </svg>
         </button>
       </div>
-      <div id="rpy-brand">Propulsé par <a href="https://repondly.com" target="_blank">Répondly</a></div>`;
+      <div id="rpy-brand">Propulsé par <a href="https://dialogly.chat" target="_blank">Dialogly</a></div>`;
 
     // Styles
     const style = document.createElement("style");

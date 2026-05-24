@@ -32,7 +32,7 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-app = FastAPI(title="Répondly")
+app = FastAPI(title="Dialogly")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"))
@@ -171,7 +171,7 @@ async def resend_verify(request: Request):
     token = make_verify_token(user_id)
     base = os.getenv("APP_URL", str(request.base_url).rstrip("/"))
     verify_url = f"{base}/verify-email?token={token}"
-    send_email(user["email"], "Vérifiez votre email Répondly", f"Cliquez sur ce lien pour vérifier votre email :\n\n{verify_url}")
+    send_email(user["email"], "Vérifiez votre email Dialogly", f"Cliquez sur ce lien pour vérifier votre email :\n\n{verify_url}")
     return {"ok": True}
 
 
@@ -199,7 +199,7 @@ async def forgot_password(request: Request):
     token = make_reset_token(user["id"])
     base = str(request.base_url).rstrip("/")
     reset_url = f"{base}/reset-password?token={token}"
-    sent = send_email(email, "Réinitialisation de votre mot de passe Répondly", f"Cliquez sur ce lien pour réinitialiser votre mot de passe :\n\n{reset_url}\n\nLien valable 1 heure.")
+    sent = send_email(email, "Réinitialisation de votre mot de passe Dialogly", f"Cliquez sur ce lien pour réinitialiser votre mot de passe :\n\n{reset_url}\n\nLien valable 1 heure.")
     if sent:
         return {"sent": True}
     return {"link": reset_url}
@@ -248,7 +248,7 @@ async def register(request: Request):
     except Exception:
         pass
     verify_url = f"{base}/verify-email?token={verify_token}"
-    send_email(email, "Vérifiez votre email Répondly", f"Bienvenue sur Répondly !\n\nCliquez sur ce lien pour vérifier votre email :\n\n{verify_url}")
+    send_email(email, "Vérifiez votre email Dialogly", f"Bienvenue sur Dialogly !\n\nCliquez sur ce lien pour vérifier votre email :\n\n{verify_url}")
     token = make_token(bot_id)
     response = RedirectResponse("/dashboard", status_code=302)
     response.set_cookie("session", token, httponly=True, max_age=60 * 60 * 24 * 30)
