@@ -69,7 +69,7 @@ def _check_rate_limit(bot_id: str) -> bool:
 # ── Auth helpers ────────────────────────────────────────────────
 
 def make_token(user_id: str) -> str:
-    return jwt.encode({"sub": user_id}, SECRET_KEY, algorithm="HS256")
+    return jwt.encode({"sub": user_id, "exp": int(time.time()) + 60 * 60 * 24 * 30}, SECRET_KEY, algorithm="HS256")
 
 
 def decode_token(token: str) -> str | None:
